@@ -13,7 +13,7 @@ def get_new_data(year: int, month: int) -> pd.DataFrame:
         raise f"No data available for year={year} and month={month}."
     df = pd.read_csv(f"https://s3.amazonaws.com/nyc-tlc/trip+data/"
                      f"yellow_tripdata_{year}-{str(month).zfill(2)}.csv")
-    df.to_csv("data")
+    df.to_csv(os.path.join("data", f"yellow_tripdata_{year}-{str(month).zfill(2)}.csv"))
     return df
 
 
@@ -55,18 +55,26 @@ def rolling_average(year: int,
     A given date and time_delta in days, compute the average trip_distance for all
     yellow cab trips inside this time period.
     """
+    # TODO: does not work for time periods in  single month
     start_date = datetime.date(year=year, month=month, day=day)
     end_date = start_date + datetime.timedelta(days=time_delta)
-    df_1 = get_data(year, month)
-    df_1 = df_1[pd.to_datetime(df_1.tpep_dropoff_datetime) >= start_date]
-    df_2 = get_data(end_date.year, end_date.month)
-    df_2 = df_2[pd.to_datetime(df_2.tpep_dropoff_datetime) <= end_date]
-    df_final = pd.concat([df_1, df_2])
+    df_s = get_data(year, month)
+    df_s = df_s[pd.to_datetime(df_s.tpep_dropoff_datetime) >= datetime.datetime(start_date.year,
+                                                                                start_date.month,
+                                                                                start_date.day)]
+    df_e = get_data(end_date.year, end_date.month)
+    df_e = df_e[pd.to_datetime(df_e.tpep_dropoff_datetime) <= datetime.datetime(end_date.year,
+                                                                                end_date.month,
+                                                                                end_date.day)]
+    df_final = pd.concat([df_s, df_e])
     # in case the time_delta covers 3 months
     # TODO works for 45 days, but not for more than 3 months
     middle_month = start_date + relativedelta(months=1)
     if end_date.month != middle_month.month:
-        df_3 = get_data(middle_month.year, middle_month.month)
-        df_final = pd.concat([df_final, df_3])
-
+        df_m = get_data(middle_month.year, middle_month.month)
+        df_final = pd.concat([df_final, df_m])
     return df_final.trip_distance.mean()
+
+
+print(f"Average trip length in February 2021 was {average_trip_length(2021, 1)}")
+print(f"45 days rolling average on Jan first 2021 was {rolling_average(2021, 1, 1, 45)}")
