@@ -1,5 +1,4 @@
 import unittest
-
 from main import data_exists
 
 
@@ -20,3 +19,7 @@ class TestNycCabData(unittest.TestCase):
 
     def test_rolling_average(self):
         pass
+
+
+if __name__ == "__main__":
+     unittest.main()
