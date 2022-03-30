@@ -9,8 +9,10 @@ def get_new_data(year: int, month: int) -> pd.DataFrame:
     Downloads new data from https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata
     according to given year and month.
     """
+    if month < 1 or month > 12 or year < 2009 or year > 2021:
+        raise f"No data available for year={year} and month={month}."
     df = pd.read_csv(f"https://s3.amazonaws.com/nyc-tlc/trip+data/"
-                f"yellow_tripdata_{year}-{str(month).zfill(2)}.csv")
+                     f"yellow_tripdata_{year}-{str(month).zfill(2)}.csv")
     df.to_csv("data")
     return df
 
